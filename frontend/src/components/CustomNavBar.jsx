@@ -9,7 +9,7 @@ const CustomNavBar = ({filter, setFilter}) => {
         <Navbar>
             <Container>
                 <Navbar.Brand><strong>Chat App</strong></Navbar.Brand>
-                <Form>
+                <Form onSubmit={(e) => e.preventDefault()}>
                     <Form.Control type="search" placeholder="Search..." value={filter} onChange={(e) => setFilter(e.target.value)} />
                 </Form>
                 <Nav>

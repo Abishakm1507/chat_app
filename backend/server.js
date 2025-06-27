@@ -97,15 +97,29 @@ app.get('/user/:id/:query', (req, res) => {
     const id = req.params.id;
     const query = `%${req.params.query}%`; 
     const fetch_user_by_lastmsg = `
-        SELECT u.userid, u.username, u.bio, u.image, n.text, 
-               MAX(n.timestamp) AS last_msg_time
-        FROM users u
-        LEFT JOIN chat n
-        ON ( (n.sender = u.userid AND n.receiver = $1)
-           OR (n.receiver = u.userid AND n.sender = $1) )
-        WHERE n.text ILIKE $2
-        GROUP BY u.userid, u.username, u.bio, u.image, n.text
-        ORDER BY last_msg_time DESC NULLS LAST
+        SELECT 
+    u.userid, 
+    u.username, 
+    u.bio, 
+    u.image,
+    n.text,
+    n.timestamp,
+    n.sendername,
+    sender.image AS sender_image
+FROM users u
+LEFT JOIN chat n
+    ON (
+        (n.sender = u.userid AND n.receiver = $1)
+        OR
+        (n.receiver = u.userid AND n.sender = $1)
+    )
+LEFT JOIN users sender
+    ON sender.userid = n.sender
+WHERE
+    n.text ILIKE $2
+ORDER BY 
+    n.timestamp DESC NULLS LAST
+
     `;
 
     con.query(fetch_user_by_lastmsg, [id, query], (err, result) => {

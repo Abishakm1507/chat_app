@@ -12,17 +12,18 @@ const UserListCard = ({ filter, currentUser }) => {
     // const [filteredItems, setFilteredItems] = useState([]);
     const [updatedUser, setUpdatedUser] = useState([]);
     useEffect(() => {
-        setTimeout(() => {
-        axios.get(`http://localhost:8080/user/${currentUser}/${filter}`)
-            .then(res => {
-                setUpdatedUser(res.data)
-            })
-            .catch(err => {
-                console.log(err);
-                setUpdatedUser([]);
-            });
-            },1000)
-    }, [filter, updatedUser]);
+  const timeout = setTimeout(() => {
+    axios.get(`http://localhost:8080/user/${currentUser}/${filter}`)
+      .then(res => setUpdatedUser(res.data))
+      .catch(err => {
+        console.log(err);
+        setUpdatedUser([]);
+      });
+  }, 1000);
+
+  return () => clearTimeout(timeout);
+}, [filter, currentUser]);
+
     const hasKey = updatedUser.some(obj => Object.keys(obj).includes('text'));
 
     const getChatKey = (id1, id2) => {
@@ -39,15 +40,15 @@ const UserListCard = ({ filter, currentUser }) => {
         localStorage.setItem("selectedChat", JSON.stringify(chatKey));
     }, [chatKey]);
 
-    useEffect(() => {
-        setTimeout(() => {
-            axios.get('http://localhost:8080/notify')
-            .then(res => {
-                setNotify(res.data || []);
-            })
-            .catch(err => console.log(err));
-    },1000)
-    }, [notify]);
+    // useEffect(() => {
+    //     setTimeout(() => {
+    //         axios.get('http://localhost:8080/notify')
+    //             .then(res => {
+    //                 setNotify(res.data || []);
+    //             })
+    //             .catch(err => console.log(err));
+    //     }, 10000)
+    // }, [notify]);
 
     const hasNotification = (userId) => {
         return notify.some(
@@ -104,8 +105,19 @@ const UserListCard = ({ filter, currentUser }) => {
                                     <Row>
                                         <Col>
                                             <Card.Body>
-                                                <Card.Title>{user.username}</Card.Title>
+                                                <Row>
+                                                     <Col xs="auto">
+                                <Image src={user.sender_image} alt={`Profile of ${displayName}`} roundedCircle style={{ width: '20px', height: '20px', objectFit: 'cover', marginBottom: '10px' }} />
+                            </Col>
+                                                    <Col>
+                                                <Card.Title>{user.sendername}</Card.Title>
                                                 <Card.Text><Button>{user.text}</Button></Card.Text>
+                                                </Col>
+                                                {/* <Col>
+                                                <Card.Subtitle style={{ marginTop: '2px' }}>{user.timestamp.slice(0,5)}</Card.Subtitle>
+                                                </Col> */}
+                                                </Row>
+                                                
                                             </Card.Body>
                                         </Col>
                                     </Row>

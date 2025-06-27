@@ -12,15 +12,20 @@ function ChatContainer({ ReceiverId, senderId, senderName, filter }) {
   const [windowSize, setWindowSize] = useState(0);
   const [filteredItems, setFilteredItems] =useState([]);
   useEffect(() => {
-    setInterval(() => {
-      if (window.innerWidth !== windowSize) {
-        if (window.innerWidth < 1000) {
-          window.scrollTo(0, document.body.scrollHeight);
-        }
-        setWindowSize(window.innerWidth)
-      }
-    }, 100)
-  },[windowSize])
+  const handleResize = () => {
+    if (window.innerWidth < 1000) {
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+    setWindowSize(window.innerWidth);
+  };
+
+  window.addEventListener('resize', handleResize);
+  // initialize once
+  handleResize();
+
+  return () => window.removeEventListener('resize', handleResize);
+}, []);
+
 
   const [messages, setMessages] = useState([]);
   const [notify, setNotify] = useState([]);
@@ -62,15 +67,18 @@ function ChatContainer({ ReceiverId, senderId, senderName, filter }) {
   };
 
   useEffect(() => {
-    socket.on((message) => {
-      console.log("message",message)
-    });
-    return () => {
-      socket.off((message) => {
-        console.log("message",message)
-      });
-    };
-  },[messages])
+  const handleMessage = (message) => {
+    console.log("message received", message);
+    setMessages((prev) => [...prev, message]);
+  };
+
+  socket.on("message", handleMessage);
+
+  return () => {
+    socket.off("message", handleMessage);
+  };
+}, [senderId, ReceiverId]);
+
 
 
   const handleClear = async (e) => {
