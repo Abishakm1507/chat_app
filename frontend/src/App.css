@@ -1,0 +1,18 @@
+* {
+  scrollbar-width: none;
+  margin-top: 5px;
+}
+
+/* h2 {
+  margin: 10px;
+} */
+
+.dark-theme {
+  background-color: rgb(60, 60, 60);
+  color: rgb(240, 240, 240);
+}
+
+.light-theme {
+  background-color: rgb(255, 255, 255);
+  color: black;
+}
