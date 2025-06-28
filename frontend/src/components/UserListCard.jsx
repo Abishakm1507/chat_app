@@ -9,22 +9,22 @@ const UserListCard = ({ filter, currentUser }) => {
     const [notify, setNotify] = useState([]);
     const senderId = JSON.parse(localStorage.getItem("currentUser"));
     const selectedUser = JSON.parse(localStorage.getItem("selectedUser1"));
-    // const [filteredItems, setFilteredItems] = useState([]);
+    const [hasKey, setHasKey] = useState(false)
     const [updatedUser, setUpdatedUser] = useState([]);
     useEffect(() => {
-  const timeout = setTimeout(() => {
-    axios.get(`http://localhost:8080/user/${currentUser}/${filter}`)
-      .then(res => setUpdatedUser(res.data))
-      .catch(err => {
-        console.log(err);
-        setUpdatedUser([]);
-      });
-  }, 1000);
-
-  return () => clearTimeout(timeout);
-}, [filter, currentUser]);
-
-    const hasKey = updatedUser.some(obj => Object.keys(obj).includes('text'));
+        setTimeout(() => {
+        axios.get(`http://localhost:8080/user/${currentUser}/${filter}`)
+                .then(res => {
+                    setUpdatedUser(res.data); 
+                    setHasKey(updatedUser.some(obj => Object.keys(obj).includes('text')));
+                    console.log(updatedUser)
+                })
+                .catch(err => {
+                    console.log(err);
+                    setUpdatedUser([]);
+                });
+        },10000)
+    }, [filter, currentUser, updatedUser]);
 
     const getChatKey = (id1, id2) => {
         const [a, b] = [id1, id2].sort();
@@ -40,15 +40,15 @@ const UserListCard = ({ filter, currentUser }) => {
         localStorage.setItem("selectedChat", JSON.stringify(chatKey));
     }, [chatKey]);
 
-    // useEffect(() => {
-    //     setTimeout(() => {
-    //         axios.get('http://localhost:8080/notify')
-    //             .then(res => {
-    //                 setNotify(res.data || []);
-    //             })
-    //             .catch(err => console.log(err));
-    //     }, 10000)
-    // }, [notify]);
+    useEffect(() => {
+        setTimeout(() => {
+            axios.get('http://localhost:8080/notify')
+                .then(res => {
+                    setNotify(res.data || []);
+                })
+                .catch(err => console.log(err));
+        }, 10000)
+    }, [notify]);
 
     const hasNotification = (userId) => {
         return notify.some(
@@ -64,6 +64,7 @@ const UserListCard = ({ filter, currentUser }) => {
             axios.put('http://localhost:8080/notify', notification)
                 .then((res) => {
                     setNotify(res.data)
+                    console.log("notification removed")
                 })
                 .catch(err => console.log(err));
         }
@@ -80,7 +81,7 @@ const UserListCard = ({ filter, currentUser }) => {
             {updatedUser.map((user) => {
                 const displayName = user.userid === currentUser ? "You" : user.username;
                 return (
-                    <Card key={user.userid}
+                    <Card key={user.msgid}
                         onClick={() => {
                             setState(user.userid);
                             removeNotification(user.userid);
@@ -90,12 +91,12 @@ const UserListCard = ({ filter, currentUser }) => {
                             <Col xs="auto">
                                 {hasNotification(user.userid) &&
                                     <Badge color="success" overlap="circular" badgeContent=" " variant="dot" style={{ margin: '5px' }}></Badge>}
-                                <Image src={user.image} alt={`Profile of ${displayName}`} roundedCircle style={{ width: '50px', height: '50px', objectFit: 'cover', marginLeft: '10px' }} />
+                                <Image src={user.image} alt={`Profile of ${displayName}`} roundedCircle style={{ width: hasKey ? '20px' : '50px', height: hasKey ? '20px' : '50px', objectFit: 'cover', marginLeft: '10px' }} />
                             </Col>
                             <Col>
                                 <Card.Body>
                                     <Card.Title>{displayName}</Card.Title>
-                                    <Card.Text style={{ overflow: 'hidden' }}>{user.bio}</Card.Text>
+                                    <Card.Text style={{ overflow: 'hidden', display: hasKey ? 'none' : 'contents' }}>{user.bio}</Card.Text>
                                 </Card.Body>
                             </Col>
                         </Row>
@@ -106,18 +107,19 @@ const UserListCard = ({ filter, currentUser }) => {
                                         <Col>
                                             <Card.Body>
                                                 <Row>
-                                                     <Col xs="auto">
-                                <Image src={user.sender_image} alt={`Profile of ${displayName}`} roundedCircle style={{ width: '20px', height: '20px', objectFit: 'cover', marginBottom: '10px' }} />
-                            </Col>
+                                                    <Col xs="auto">
+                                                        <Image src={user.sender_image} alt={`Profile of ${displayName}`} roundedCircle style={{ width: '20px', height: '20px', objectFit: 'cover', marginBottom: '10px' }} />
+                                                    </Col>
                                                     <Col>
-                                                <Card.Title>{user.sendername}</Card.Title>
-                                                <Card.Text><Button>{user.text}</Button></Card.Text>
-                                                </Col>
-                                                {/* <Col>
-                                                <Card.Subtitle style={{ marginTop: '2px' }}>{user.timestamp.slice(0,5)}</Card.Subtitle>
-                                                </Col> */}
+                                                        <Card.Title>{user.sendername}</Card.Title>
+                                                        <Card.Text style={{ width: '100%' }}><Button style={{ cursor: 'none' }} disabled>{user.text}</Button></Card.Text>
+                                                    </Col>
+                                                    <Col>
+                                                    {user.timestamp &&
+                                                        <Card.Subtitle style={{ marginTop: '2px' }}>{user.timestamp.slice(10,)}</Card.Subtitle>}
+                                                    </Col>
                                                 </Row>
-                                                
+
                                             </Card.Body>
                                         </Col>
                                     </Row>

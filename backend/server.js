@@ -97,15 +97,7 @@ app.get('/user/:id/:query', (req, res) => {
     const id = req.params.id;
     const query = `%${req.params.query}%`; 
     const fetch_user_by_lastmsg = `
-        SELECT 
-    u.userid, 
-    u.username, 
-    u.bio, 
-    u.image,
-    n.text,
-    n.timestamp,
-    n.sendername,
-    sender.image AS sender_image
+        SELECT n.msgid, u.userid, u.username, u.bio, u.image,n.text,n.timestamp,n.sendername,sender.image AS sender_image
 FROM users u
 LEFT JOIN chat n
     ON (
@@ -118,8 +110,7 @@ LEFT JOIN users sender
 WHERE
     n.text ILIKE $2
 ORDER BY 
-    n.timestamp DESC NULLS LAST
-
+    n.msgid DESC NULLS LAST
     `;
 
     con.query(fetch_user_by_lastmsg, [id, query], (err, result) => {
@@ -167,9 +158,9 @@ app.put("/user/:id", (req, res) => {
 // });
 
 app.post("/message", (req, res) => {
-    const { sender, receiver, text, image, sendername } = req.body;
-    const post_message = `INSERT INTO chat (sender, receiver, text, image, sendername) VALUES ($1, $2, $3, $4, $5)`;
-    con.query(post_message, [sender, receiver, text, image, sendername], (err, result) => {
+    const { sender, receiver, text, image, sendername, timestamp } = req.body;
+    const post_message = `INSERT INTO chat (sender, receiver, text, image, sendername, timestamp) VALUES ($1, $2, $3, $4, $5, $6)`;
+    con.query(post_message, [sender, receiver, text, image, sendername, timestamp], (err, result) => {
         if (err) {
             console.log(err);
             return res.status(500).send("Error occured");

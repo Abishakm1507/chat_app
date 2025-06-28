@@ -10,21 +10,13 @@ function ChatContainer({ ReceiverId, senderId, senderName, filter }) {
   const selectedUser = JSON.parse(localStorage.getItem("selectedUser"))
   localStorage.setItem("selectedUser1", JSON.stringify(selectedUser))
   const [windowSize, setWindowSize] = useState(0);
-  const [filteredItems, setFilteredItems] =useState([]);
+  const [filteredItems, setFilteredItems] = useState([]);
   useEffect(() => {
-  const handleResize = () => {
     if (window.innerWidth < 1000) {
-      window.scrollTo(0, document.body.scrollHeight);
-    }
-    setWindowSize(window.innerWidth);
-  };
-
-  window.addEventListener('resize', handleResize);
-  // initialize once
-  handleResize();
-
-  return () => window.removeEventListener('resize', handleResize);
-}, []);
+        window.scrollTo(0, document.body.scrollHeight);
+      }
+      setWindowSize(window.innerWidth);
+  }, [windowSize]);
 
 
   const [messages, setMessages] = useState([]);
@@ -32,17 +24,20 @@ function ChatContainer({ ReceiverId, senderId, senderName, filter }) {
   const cardRef = useRef(null);
 
   useEffect(() => {
+    setTimeout(() => {
     axios.get(`http://localhost:8080/message/${senderId}/${ReceiverId}`)
       .then(res => setMessages(res.data))
       .catch((err) => console.log(err));
-  }, [senderId, ReceiverId]);
+      },10000)
+  }, [senderId, ReceiverId, messages]);
 
   const sendMessage = (message) => {
     const newMessage = {
       ...message,
       sender: senderId,
       receiver: ReceiverId,
-      sendername: senderName
+      sendername: senderName,
+      timestamp: new Date().toLocaleString()
     };
 
     const notifyUser = {
@@ -67,19 +62,17 @@ function ChatContainer({ ReceiverId, senderId, senderName, filter }) {
   };
 
   useEffect(() => {
-  const handleMessage = (message) => {
-    console.log("message received", message);
-    setMessages((prev) => [...prev, message]);
-  };
+    const handleMessage = (message) => {
+      console.log("message received", message);
+      setMessages((prev) => [...prev, message]);
+    };
 
-  socket.on("message", handleMessage);
+    socket.on("message", handleMessage);
 
-  return () => {
-    socket.off("message", handleMessage);
-  };
-}, [senderId, ReceiverId]);
-
-
+    return () => {
+      socket.off("message", handleMessage);
+    };
+  }, [senderId, ReceiverId]);
 
   const handleClear = async (e) => {
     e.preventDefault();
@@ -90,10 +83,10 @@ function ChatContainer({ ReceiverId, senderId, senderName, filter }) {
 
   useEffect(() => {
     const filtered = messages.filter((item) =>
-            (item.text || '').toLowerCase().includes(filter.toLowerCase())
-        );
+      (item.text || '').toLowerCase().includes(filter.toLowerCase())
+    );
     setFilteredItems(filtered);
-  },[messages, filter])
+  }, [messages, filter])
 
   useEffect(() => {
     if (cardRef.current) {
@@ -105,8 +98,8 @@ function ChatContainer({ ReceiverId, senderId, senderName, filter }) {
     <Container style={{
       marginBottom: '50px',
       marginTop: window.innerWidth >= 1000 ? '70px' : '90px',
-      display:'flex',
-      flexDirection:'column',
+      display: 'flex',
+      flexDirection: 'column',
       height: window.innerWidth >= 1000 ? '550px' : (window.innerHeight >= 600 ? '550px' : '150px'),
       overflowY: 'scroll'
     }}>
@@ -122,12 +115,12 @@ function ChatContainer({ ReceiverId, senderId, senderName, filter }) {
         }}>
         Clear
       </Button>
-      <Card ref={cardRef} style={{ border: 'none', width: '800px', overflowY: 'scroll', maxHeight: '600px' }}>
+      <Card ref={cardRef} style={{ border: 'none', width: '800px', overflowY: 'scroll', overflowX: 'hidden', maxHeight: '600px' }}>
         {filteredItems.map((message, index) => (
           <Card.Body key={index}>
             <Card.Title>{message.sendername}:</Card.Title>
             {message.text && (
-              <Button style={{ cursor: 'default', maxWidth: '95%' }} disabled>
+              <Button style={{ cursor: 'default', maxWidth: '60%' }} disabled>
                 <Card.Text>{message.text}</Card.Text>
               </Button>
             )}
@@ -140,9 +133,9 @@ function ChatContainer({ ReceiverId, senderId, senderName, filter }) {
                 />
               </Button>
             )}
-            {/* {message.timestamp && (
-              <Card.Subtitle style={{ marginTop:'2px'}}>{message.timestamp}</Card.Subtitle>
-            )} */}
+            {message.timestamp && (
+              <Card.Subtitle style={{ marginTop: '2px' }}>{message.timestamp.slice(10,)}</Card.Subtitle>
+            )}
           </Card.Body>
         ))}
       </Card>
