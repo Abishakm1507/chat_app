@@ -24,17 +24,6 @@ const Onboarding = () => {
         setUserData({ ...userData, [e.target.name]: e.target.value });
     };
 
-    // const handleFileChange = (e) => {
-    //     const file = e.target.files[0];
-    //     if (file) {
-    //         const reader = new FileReader();
-    //         reader.onloadend = () => {
-    //             setUserData(prev => ({ ...prev, image: reader.result }));
-    //         };
-    //         reader.readAsDataURL(file);
-    //     }
-    // };
-
     const handleClick = async (e) => {
         e.preventDefault();
         try {

@@ -12,19 +12,23 @@ const UserListCard = ({ filter, currentUser }) => {
     const [hasKey, setHasKey] = useState(false)
     const [updatedUser, setUpdatedUser] = useState([]);
     useEffect(() => {
-        setTimeout(() => {
-        axios.get(`http://localhost:8080/user/${currentUser}/${filter}`)
-                .then(res => {
-                    setUpdatedUser(res.data); 
-                    setHasKey(updatedUser.some(obj => Object.keys(obj).includes('text')));
-                    console.log(updatedUser)
+        const timer = setTimeout(() => {
+            axios
+                .get(`http://localhost:8080/user/${currentUser}/${filter}`)
+                .then((res) => {
+                    setUpdatedUser(res.data);
+                    setHasKey(res.data.some((obj) => Object.keys(obj).includes('text')));
+                    console.log(res.data);
                 })
-                .catch(err => {
+                .catch((err) => {
                     console.log(err);
                     setUpdatedUser([]);
                 });
-        },10000)
+        }, 500);
+
+        return () => clearTimeout(timer);
     }, [filter, currentUser, updatedUser]);
+
 
     const getChatKey = (id1, id2) => {
         const [a, b] = [id1, id2].sort();
@@ -41,13 +45,11 @@ const UserListCard = ({ filter, currentUser }) => {
     }, [chatKey]);
 
     useEffect(() => {
-        setTimeout(() => {
-            axios.get('http://localhost:8080/notify')
-                .then(res => {
-                    setNotify(res.data || []);
-                })
-                .catch(err => console.log(err));
-        }, 10000)
+        axios.get('http://localhost:8080/notify')
+            .then(res => {
+                setNotify(res.data || []);
+            })
+            .catch(err => console.log(err));
     }, [notify]);
 
     const hasNotification = (userId) => {
@@ -112,11 +114,30 @@ const UserListCard = ({ filter, currentUser }) => {
                                                     </Col>
                                                     <Col>
                                                         <Card.Title>{user.sendername}</Card.Title>
-                                                        <Card.Text style={{ width: '100%' }}><Button style={{ cursor: 'none' }} disabled>{user.text}</Button></Card.Text>
-                                                    </Col>
-                                                    <Col>
-                                                    {user.timestamp &&
-                                                        <Card.Subtitle style={{ marginTop: '2px' }}>{user.timestamp.slice(10,)}</Card.Subtitle>}
+                                                        {user.text && (() => {
+                                                            const match = user.text.match(filter);
+                                                            if (!match) {
+                                                                return (
+                                                                    <Button style={{ cursor: 'default' }} disabled>
+                                                                        <Card.Text>{user.text}</Card.Text>
+                                                                    </Button>
+                                                                );
+                                                            }
+                                                            const start = user.text.indexOf(match[0]);
+                                                            const end = start + match[0].length;
+                                                            return (
+                                                                <Button style={{ cursor: 'default'}} disabled>
+                                                                    <Card.Text>
+                                                                        {user.text.slice(0, start)}
+                                                                        <span style={{ backgroundColor:'yellow', color: 'black', fontWeight: 'bold' }}>{match[0]}</span>
+                                                                        {user.text.slice(end)}
+                                                                    </Card.Text>
+                                                                </Button>
+                                                            );
+                                                        })()}
+
+                                                        <Row>{user.timestamp &&
+                                                            <Card.Subtitle style={{ marginTop: '2px' }}>{user.timestamp.slice(10,)}</Card.Subtitle>}</Row>
                                                     </Col>
                                                 </Row>
 

@@ -13,23 +13,20 @@ function ChatContainer({ ReceiverId, senderId, senderName, filter }) {
   const [filteredItems, setFilteredItems] = useState([]);
   useEffect(() => {
     if (window.innerWidth < 1000) {
-        window.scrollTo(0, document.body.scrollHeight);
-      }
-      setWindowSize(window.innerWidth);
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+    setWindowSize(window.innerWidth);
   }, [windowSize]);
-
 
   const [messages, setMessages] = useState([]);
   const [notify, setNotify] = useState([]);
   const cardRef = useRef(null);
 
   useEffect(() => {
-    setTimeout(() => {
     axios.get(`http://localhost:8080/message/${senderId}/${ReceiverId}`)
       .then(res => setMessages(res.data))
       .catch((err) => console.log(err));
-      },10000)
-  }, [senderId, ReceiverId, messages]);
+  }, [senderId, ReceiverId]);
 
   const sendMessage = (message) => {
     const newMessage = {
@@ -48,7 +45,9 @@ function ChatContainer({ ReceiverId, senderId, senderName, filter }) {
     axios.post(`http://localhost:8080/message`, newMessage)
       .then(() => {
         socket.emit("message", newMessage);
-        setMessages(prev => [...prev, newMessage])
+        socket.on("message", (message) => {
+          setMessages(prev => [...prev, newMessage])
+        });
       })
       .catch(err => console.log(err));
 
@@ -60,19 +59,6 @@ function ChatContainer({ ReceiverId, senderId, senderName, filter }) {
       })
       .catch(err => console.log(err))
   };
-
-  useEffect(() => {
-    const handleMessage = (message) => {
-      console.log("message received", message);
-      setMessages((prev) => [...prev, message]);
-    };
-
-    socket.on("message", handleMessage);
-
-    return () => {
-      socket.off("message", handleMessage);
-    };
-  }, [senderId, ReceiverId]);
 
   const handleClear = async (e) => {
     e.preventDefault();
@@ -92,7 +78,7 @@ function ChatContainer({ ReceiverId, senderId, senderName, filter }) {
     if (cardRef.current) {
       cardRef.current.scrollTop = cardRef.current.scrollHeight;
     }
-  }, [messages, filteredItems]);
+  }, [filteredItems, windowSize]);
 
   return (
     <Container style={{
@@ -119,11 +105,30 @@ function ChatContainer({ ReceiverId, senderId, senderName, filter }) {
         {filteredItems.map((message, index) => (
           <Card.Body key={index}>
             <Card.Title>{message.sendername}:</Card.Title>
-            {message.text && (
-              <Button style={{ cursor: 'default', maxWidth: '60%' }} disabled>
-                <Card.Text>{message.text}</Card.Text>
-              </Button>
-            )}
+            {message.text && (() => {
+              const match = message.text.match(filter);
+              if (!match) {
+                return (
+                  <Button style={{ cursor: 'default', maxWidth: '60%' }} disabled>
+                    <Card.Text>{message.text}</Card.Text>
+                  </Button>
+                );
+              }
+
+              const start = message.text.indexOf(match[0]);
+              const end = start + match[0].length;
+
+              return (
+                <Button style={{ cursor: 'default', maxWidth: '60%' }} disabled>
+                  <Card.Text>
+                    {message.text.slice(0, start)}
+                    <span style={{ color: 'black', fontWeight: 'bold', backgroundColor:'yellow' }}>{match[0]}</span>
+                    {message.text.slice(end)}
+                  </Card.Text>
+                </Button>
+              );
+            })()}
+
             {message.image && (
               <Button style={{ cursor: 'default' }} disabled>
                 <Image

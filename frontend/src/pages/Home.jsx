@@ -22,7 +22,7 @@ const Home = () => {
     }, []);
 
     return (
-        <Row style={{ margin: '0 25px', padding: '1px', position: (window.innerWidth >= 1000) ? 'fixed' : 'static' }}>
+        <Row style={{ margin: '0 25px', padding: '1px', position: 'static' }}>
             <Col style={{ width: '600px', marginRight: '30px' }}>
                 <Row>
                     <CustomNavBar filter={filter} setFilter={setFilter} />

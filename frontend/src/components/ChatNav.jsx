@@ -21,7 +21,7 @@ const ChatNav = ({ userId, Username, userImage, filter, setFilter }) => {
                         </Card.Body>
                     </Col>
                     <Col>
-                    <Form>
+                    <Form onSubmit={(e) => e.preventDefault()}>
                         <InputGroup className="mb-3">
                             <Form.Control type="search" placeholder="Search..." value={filter} onChange={(e) => setFilter(e.target.value)}/>
                             <Button style={{ backgroundColor:"grey", border:'none'}}>

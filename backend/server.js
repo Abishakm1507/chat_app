@@ -137,26 +137,6 @@ app.put("/user/:id", (req, res) => {
     });
 });
 
-//table to store message
-// app.post("/createmessage", (req, res) => {
-//     const chatkey = req.params.chatkey;
-//     const create_message = `
-//         CREATE TABLE IF NOT EXISTS chat${chatkey} (
-//             text character varying(1000),
-//             image bytea,
-//             sender character varying(255),
-//             "timestamp" time without time zone NOT NULL DEFAULT now()
-//         )`;
-
-//     con.query(create_message, (err, result) => {
-//         if (err) {
-//             console.log(err);
-//             return res.status(500).send("Error occurred");
-//         }
-//         res.send("Successfully created", result.rows);
-//     });
-// });
-
 app.post("/message", (req, res) => {
     const { sender, receiver, text, image, sendername, timestamp } = req.body;
     const post_message = `INSERT INTO chat (sender, receiver, text, image, sendername, timestamp) VALUES ($1, $2, $3, $4, $5, $6)`;
@@ -172,7 +152,7 @@ app.post("/message", (req, res) => {
 
 app.get("/message/:sender/:receiver", (req, res) => {
     const { sender, receiver } =req.params
-    const fetch_message = `SELECT * FROM chat WHERE sender=$1 and receiver=$2 OR sender=$2 and receiver=$1 ORDER BY timestamp`;
+    const fetch_message = `SELECT * FROM chat WHERE sender=$1 and receiver=$2 OR sender=$2 and receiver=$1 ORDER BY msgid ASC`;
     con.query(fetch_message, [sender, receiver], (err, result) => {
         if (err) {
             console.log(err);
