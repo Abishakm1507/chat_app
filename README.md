@@ -53,11 +53,11 @@ This application enables users to register, log in, chat in real-time, manage pr
 ---
 
 ## Install Dependencies
-
+```
 cd backend
 npm install
 npm install -g nodemon
-
+```
 ---
 
 ## Database Setup
